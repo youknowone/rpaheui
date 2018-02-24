@@ -88,7 +88,10 @@ class Debug(object):
         for (pos, dir, step), i in code_map.items():
             if dir >= 3:
                 continue
-            self.comments[i].append(primitive.pane[pos])
+            char = primitive.pane[pos]
+            if char != u'\0':
+                self.comments[i].append(char)
+
             srow = padding(_unicode(pos[0]), 3, left=False)
             scol = padding(_unicode(pos[1]), 3, left=False)
             sdir = padding(DIR_NAMES[dir], 5)
@@ -133,6 +136,8 @@ class PrimitiveProgram(object):
                 continue
             if u'가' <= char <= u'힣':
                 self.pane[pc_row, pc_col] = char
+            else:
+                self.pane[pc_row, pc_col] = u'\0'
             pc_col += 1
         max_col = max(max_col, pc_col)
 
@@ -141,6 +146,8 @@ class PrimitiveProgram(object):
 
     def decode(self, position):
         code = self.pane[position]
+        if code == u'\0':
+            return 0, 1, -1  # do nothing
         base = ord(code) - ord(u'가')
         op_code = base // 588
         mv_code = (base // 28) % 21
@@ -341,6 +348,9 @@ class Compiler(object):
                                     break
                 position = primitive.advance_position(position, direction, step)
         return lines, label_map, code_map
+
+    def optimize0(self):
+        pass
 
     def optimize1(self):
         self.optimize_jump()
